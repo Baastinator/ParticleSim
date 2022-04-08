@@ -1,0 +1,16 @@
+{
+  "Lua.diagnostics.globals": [
+    "parallel",
+    "sleep",
+    "term",
+    "keys",
+    "colors",
+    "fs",
+    "shell",
+    "write",
+    "read",
+    "debugLog",
+    "ccemux"
+  ],
+  "git.enabled": true
+}
