@@ -1,3 +1,4 @@
+---@diagnostic disable: deprecated, lowercase-global
 local mathb = import("mathb")
 
 local matrix = {
@@ -79,7 +80,6 @@ local matrix = {
             end
             local size = A:getSize()
             local m = mat(size.x,size.y)
-            -- debugLog({A=A,B=B,size=size},"matnummul")
             for y=1,size.y do
                 for x=1,size.x do
                     m:set(x,y,A:get(x,y)*B)
@@ -97,7 +97,6 @@ local matrix = {
             for i=1,ay do
                 for j=1,bx do
                     for k=1,by do
-                        -- debugLog({m=m,a=a,b=b,i=i,k=k,<j=j},"matmatmul")
                         m:add(j,i,(a:get(k,i)*b:get(j,k)))
                     end
                 end
@@ -241,7 +240,6 @@ local matrix = {
         local d = t
         local m = mat(2,2)
         m:fill({c,-d,d,c})
-        -- debugLog({a=a, b=b,r=r,t=t,c=c,d=d,m=m},"yeet")
         return m
     end,
     minus = function(a)
@@ -312,7 +310,7 @@ function mat(X,Y)
     return setmetatable(T,MT)
 end
 
-function vec(input)
+function vec(input,mode)
     local content = {}
     local size = 0
     if (type(input) == "table") then
@@ -336,9 +334,14 @@ function vec(input)
     elseif (size == 2) then
         v.x = content[1]
         v.y = content[2]
-    end
-    for i, V in ipairs(content) do
-        v[i] = V
+    end 
+    if (mode == "polar") then
+        if (size ~= 2) then error("polar mode requires 2 inputs",2) end
+        v[1] = 2
+    else 
+        for i, V in ipairs(content) do
+            v[i] = V
+        end
     end
     return v
 end

@@ -10,7 +10,8 @@
     "write",
     "read",
     "debugLog",
-    "ccemux"
+    "ccemux",
+    "printError"
   ],
   "git.enabled": true
 }

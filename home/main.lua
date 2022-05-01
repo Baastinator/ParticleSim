@@ -13,40 +13,37 @@ import("List")
 
 local res = {}
 local tres = {}
-local key
 local debugMode = false
 local gameLoop = true
-local FPS = 100
 local framesElapsed = 0
 local particles = List("particles")
 local scale = 1
 local oldtime = ccemux.milliTime()
+local startTime = ccemux.milliTime()
 
 -- side functions
 
 local function userInput()
-    local event, is_held
+    local event, key, is_held
     while true do
 ---@diagnostic disable-next-line: undefined-field
         event, key, is_held = os.pullEvent("key")
         if key == keys.space then
             gameLoop = false
         end
-        event, is_held = nil, nil
+        event, key, is_held = nil, nil, nil
     end
 end
 
-local function setVertices()
-    local mult = 0.1
-    local yRange = 5
-    local xRange = 5
-    for x=-xRange,xRange,mult do
-        for y = -yRange, yRange,mult do
-            particles:add(vec({
-                2*xRange*math.random()-xRange,
-                2*yRange*math.random()-yRange
-            }))
-        end
+local yRange = 10
+local xRange = 18
+
+local function addParticles(n)
+    for i=1,n do
+        particles:add(vec({
+            2*xRange*math.random()-xRange,
+            2*yRange*math.random()-yRange
+        }))
     end
 end
 
@@ -58,13 +55,13 @@ local function Init()
     res.y = math.floor(tres.y / draw.PixelSize)
     Grid.init(res.x,res.y)
     term.clear()
-    term.setGraphicsMode(1)
+    term.setGraphicsMode(2)
     draw.setPalette()
-    term.drawPixels(0,0,1,tres.x,tres.y)
+    term.drawPixels(0,0,0,tres.x,tres.y)
 end
 
 local function Start()
-    setVertices()
+    addParticles(25000)
 end
 
 local gd = {}
@@ -72,17 +69,27 @@ local gd = {}
 local function Update()
     local dt = (oldtime-ccemux.milliTime())/1000
     oldtime = ccemux.milliTime()
-    local timeScale = 1/10
+    local speed = 1
     local indexesToRemove = {}
+
+    local mu = -1.5
+    local g = 9.81
+    local L = 1
     for i, v in ipairs(particles) do
-        local new = (dt*timeScale) * vec({
-            -- -0.05*v[1]-v[2],
-            -- v[1]     -0.05*v[2]
-            v[2]^3-9*v[2],
-            v[1]^3-9*v[1]
+        local x = v[1]/4
+        local y = 3*v[2]/2
+        local movement = (dt*speed) * vec({
+            y,
+            -mu * y - (g/L) * math.sin(x)
         })
-        particles[i] = v + new 
-        if (math.abs(v[1]) > 6 or math.abs(v[2]) > 6) then
+        particles[i] = v + movement  
+        if (
+            function() return false end or
+            -- (y)^2+((math.abs(x)-0*math.pi)*100)^2 < 0.5^2 or
+            -- (y)^2+((math.abs(x)-2*math.pi)*100)^2 < 0.5^2 or
+            -- (y)^2+((math.abs(x)-4*math.pi)*100)^2 < 0.5^2 or
+            y^2 + x^2 > 40^2
+        ) then
            table.insert(indexesToRemove,i) 
         end
     end
@@ -93,20 +100,17 @@ local function Update()
     end
     for i, v in ipairs(indexReverse) do
         particles:remove(v)
+        addParticles(1)
     end    
 end
  
 local function Render()
     scale = 30
     for i, v in ipairs(particles) do
-        Grid.SetlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((v[2]*scale)+res.y/2),1)
-    end
-    local g = {}
-    for i, v in ipairs(g) do
-        g[i] = {}
-        for i2, v2 in ipairs(v) do
-            if (v2 ~= 0) then g[i][i2] = v2 end
-        end
+        Grid.SetlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((v[2]*scale)+res.y/2),
+        (i/#particles)
+        -- 1
+    )
     end
     draw.drawFromArray2D(0,0,Grid)
 end
@@ -115,6 +119,7 @@ local function Closing()
     term.clear()
     term.setGraphicsMode(0)
     draw.resetPalette()
+    debugLog(framesElapsed*1000/(ccemux.milliTime()-startTime),"fps")
     if not debugMode then
         term.clear()
         term.setCursorPos(1,1)
@@ -130,7 +135,10 @@ local function main()
         Grid.init(res.x,res.y)
         Update()
         Render()
-        sleep(1/FPS)
+---@diagnostic disable-next-line: undefined-field
+        os.queueEvent("")
+---@diagnostic disable-next-line: undefined-field
+        os.pullEvent("")
         framesElapsed = framesElapsed + 1;
     end
     Closing()
@@ -138,4 +146,8 @@ end
 
 -- execution
 
-parallel.waitForAny(main,userInput)
+local ok, err = pcall(parallel.waitForAny,main,userInput)
+if not ok then
+    Closing()
+    printError(err)
+end

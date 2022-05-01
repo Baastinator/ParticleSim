@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 function clean(input)
     local output = {}
     for k, v in pairs(input) do
