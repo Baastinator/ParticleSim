@@ -61,7 +61,7 @@ local function Init()
 end
 
 local function Start()
-    addParticles(25000)
+    addParticles(10000)
 end
 
 local gd = {}
@@ -69,14 +69,14 @@ local gd = {}
 local function Update()
     local dt = (oldtime-ccemux.milliTime())/1000
     oldtime = ccemux.milliTime()
-    local speed = 1
+    local speed = 1/10
     local indexesToRemove = {}
 
-    local mu = -1.5
+    local mu = -0.3
     local g = 9.81
     local L = 1
     for i, v in ipairs(particles) do
-        local x = v[1]/4
+        local x = v[1]/6
         local y = 3*v[2]/2
         local movement = (dt*speed) * vec({
             y,
@@ -84,11 +84,16 @@ local function Update()
         })
         particles[i] = v + movement  
         if (
-            function() return false end or
-            -- (y)^2+((math.abs(x)-0*math.pi)*100)^2 < 0.5^2 or
-            -- (y)^2+((math.abs(x)-2*math.pi)*100)^2 < 0.5^2 or
-            -- (y)^2+((math.abs(x)-4*math.pi)*100)^2 < 0.5^2 or
-            y^2 + x^2 > 40^2
+            (function() 
+                local output = false
+                for i=0,10 do
+                    output = output or (
+                        (y)^2+((math.abs(x)-i*math.pi)*10)^2 < 0.075^2
+                    )
+                end
+                return output
+            end)() or
+            math.abs(y) > 20 or math.abs(x) > 20
         ) then
            table.insert(indexesToRemove,i) 
         end
@@ -107,9 +112,8 @@ end
 local function Render()
     scale = 30
     for i, v in ipairs(particles) do
-        Grid.SetlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((v[2]*scale)+res.y/2),
-        (i/#particles)
-        -- 1
+        Grid.AddlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((v[2]*scale)+res.y/2),
+        0.1
     )
     end
     draw.drawFromArray2D(0,0,Grid)
@@ -119,7 +123,6 @@ local function Closing()
     term.clear()
     term.setGraphicsMode(0)
     draw.resetPalette()
-    debugLog(framesElapsed*1000/(ccemux.milliTime()-startTime),"fps")
     if not debugMode then
         term.clear()
         term.setCursorPos(1,1)
@@ -132,7 +135,7 @@ local function main()
     Init()
     Start()
     while gameLoop do
-        Grid.init(res.x,res.y)
+        -- Grid.init(res.x,res.y)
         Update()
         Render()
 ---@diagnostic disable-next-line: undefined-field

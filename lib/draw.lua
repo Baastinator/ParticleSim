@@ -64,7 +64,14 @@ local function setPalette()
     for r=0,7 do
         for g=0,7 do
             for b=0,3 do
-                term.setPaletteColor(i, colors.packRGB(r/7,g/7,b))
+                local rgbMode = false
+                local color 
+                if (rgbMode) then
+                    color = colors.packRGB(r/7,g/7,b/3)
+                else
+                    color = colors.packRGB(i/255,i/255,i/255)
+                end
+                term.setPaletteColor(i, color)
                 i = i + 1
             end
         end
