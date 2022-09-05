@@ -30,6 +30,8 @@ local function userInput()
         event, key, is_held = os.pullEvent("key")
         if key == keys.space then
             gameLoop = false
+        elseif key == keys.d then
+            draw.debugB = true
         end
         event, key, is_held = nil, nil, nil
     end
@@ -61,7 +63,7 @@ local function Init()
 end
 
 local function Start()
-    addParticles(10000)
+    addParticles(1000)
 end
 
 local gd = {}
@@ -69,31 +71,39 @@ local gd = {}
 local function Update()
     local dt = (oldtime-ccemux.milliTime())/1000
     oldtime = ccemux.milliTime()
-    local speed = 1/10
+    local speed = 1
     local indexesToRemove = {}
 
-    local mu = -0.3
+    local mu = -0.6
     local g = 9.81
     local L = 1
+
+    local M = (math.pi/100*mat(2,2,{0,-1,1,0})):exp(50)+mat(2,2,{0.001,0,0,0.001})
     for i, v in ipairs(particles) do
-        local x = v[1]/6
-        local y = 3*v[2]/2
-        local movement = (dt*speed) * vec({
-            y,
-            -mu * y - (g/L) * math.sin(x)
-        })
+        local x = v[1]
+        local y = v[2]
+        local movement = (dt * speed) * (
+            vec({
+                (2*y^3)/(3*y^2-5^2),
+                (2*x^3)/(3*x^2-(5*res.x/res.y)^2),
+            }) 
+        )
+        -- * vec({
+        --     y,
+        --     -mu * y - (g/L) * math.sin(x)
+        -- })
         particles[i] = v + movement  
         if (
             (function() 
                 local output = false
-                for i=0,10 do
-                    output = output or (
-                        (y)^2+((math.abs(x)-i*math.pi)*10)^2 < 0.075^2
-                    )
-                end
+                local X,Y
+                X = x
+                Y = y
+                local rX,rY = X,Y
+                output = math.abs(rX)>15 or math.abs(rY)>8
                 return output
-            end)() or
-            math.abs(y) > 20 or math.abs(x) > 20
+            end)() 
+            
         ) then
            table.insert(indexesToRemove,i) 
         end
@@ -112,8 +122,9 @@ end
 local function Render()
     scale = 30
     for i, v in ipairs(particles) do
-        Grid.AddlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((v[2]*scale)+res.y/2),
-        0.1
+        Grid.SetlightLevel(math.floor((v[1]*scale)+res.x/2),math.floor((-v[2]*scale)+res.y/2),
+        (i/#particles+  0)/1
+        -- 1
     )
     end
     draw.drawFromArray2D(0,0,Grid)

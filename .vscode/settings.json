@@ -11,7 +11,8 @@
     "read",
     "debugLog",
     "ccemux",
-    "printError"
+    "printError",
+    "textutils"
   ],
   "git.enabled": true
 }

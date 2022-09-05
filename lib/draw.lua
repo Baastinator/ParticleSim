@@ -1,7 +1,9 @@
-local mathb = import("mathb")
-local Grid = import("grid")
+local mathb = require("mathb")
+local Grid = require("grid")
 
 local PixelSize = 1 --KEEP AT 2
+
+local debugB = false
 
 local function lightLevelToCol(D, LinMode)
     if (type(D) ~= "number") then error("first input needs to be number",2) end
@@ -46,7 +48,10 @@ local function drawFromArray2D(x, y, Grid) -- FIX THIS
     for i, v in ipairs(Grid.grid) do
         oT[i] = drawFromArray1D(x-1,y+i-1,v, Grid)
     end
-    -- debugLog(oT,"DFA2D")
+    if debugB then
+        debugLog(oT,"DFA2D")
+        debugB = false
+    end
 end
 
 local function f(x)
@@ -86,6 +91,7 @@ local function resetPalette()
 end
 
 return {
+    debugB = debugB,
     lightLevelToCol = lightLevelToCol,
     PixelSize = PixelSize,
     drawFromArray1D = drawFromArray1D,

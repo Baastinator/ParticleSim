@@ -1,31 +1,30 @@
 ---@diagnostic disable: undefined-field
 
 
-local function add(a,Element)
-    table.insert(a,Element)
-    return table.getn(a)
+local function add(self,Element)
+    table.insert(self,Element)
 end
 
-local function get(a,index)
-    if #a < index then error(Type.." List get: Outside range",2) end
-    return a[index]
+local function get(self,index)
+    if #self < index then error(Type.." List get: Outside range",2) end
+    return self[index]
 end
 
-local function set(a,index, value)
-    if #a < index then error(Type.." List set: Outside range",2) end
-    a[index] = value
+local function set(self,index, value)
+    if #self < index then error(Type.." List set: Outside range",2) end
+    self[index] = value
 end
 
-local function remove(a,index)
-    if #a < index then error(Type.." List remove: Outside range",2) end
-    for i=index,table.getn(a) do
-        a[i] = a[i+1] or nil
+local function remove(self,index)
+    if #self < index then error(Type.." List remove: Outside range",2) end
+    for i, v in ipairs(self) do
+        self[i] = self[i+1] or nil
     end
 end
 
-local function clear(a)
-    for i, v in ipairs(a) do
-        a[i] = nil 
+local function clear(self)
+    for i, v in ipairs(self) do
+        self[i] = nil 
     end
 end
 
